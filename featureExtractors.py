@@ -144,10 +144,10 @@ class SimpleExtractor(FeatureExtractor):
             features["capsule-1-step-away"] = 1.0
 
         # decrement all other features if pacman is chasing ghost
-        # if shouldChase:
-        #     features["eats-food"] /= 10.0
-        #     features["closest-food"] /= 10.0
-        #     features["capsule-1-step-away"] /= 10.0
+        if shouldChase:
+            features["eats-food"] /= 10.0
+            features["closest-food"] /= 10.0
+            features["capsule-1-step-away"] /= 10.0
 
         features.divideAll(10.0)
         return features

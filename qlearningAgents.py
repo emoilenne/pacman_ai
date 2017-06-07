@@ -212,17 +212,17 @@ class ApproximateQAgent(PacmanQAgent):
            Should update your weights based on transition
         """
         feats = self.featExtractor.getFeatures(state, action)
-        # qvalsPerc = self.calculateQValsPercentage(state)
+        qvalsPerc = self.calculateQValsPercentage(state)
         # ------------ LOG -------------
 
-        # print "--- Update ---"
-        # directions = {'West': 'Left', 'East': 'Right', 'North': 'Up', 'South': 'Down', 'Stop': 'Stop'}
-        # dirs = ['West', 'North', 'East', 'South', 'Stop']
-        # for action in dirs:
-        #     print '%s: %f%%' % (directions[action], qvalsPerc[action])
-        # for name in feats.sortedKeysByName():
-        #     if name == "bias": continue
-        #     print "%s: %f" % (name, feats[name] * 100)
+        print "--- Update ---"
+        directions = {'West': 'Left', 'East': 'Right', 'North': 'Up', 'South': 'Down', 'Stop': 'Stop'}
+        dirs = ['West', 'North', 'East', 'South', 'Stop']
+        for act in dirs:
+            print '%s: %f%%' % (directions[act], qvalsPerc[act])
+        for name in feats.sortedKeysByName():
+            if name == "bias": continue
+            print "%s: %f" % (name, feats[name] * 100)
 
         # ------------ LOG -------------
 
