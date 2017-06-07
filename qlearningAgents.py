@@ -184,9 +184,10 @@ class ApproximateQAgent(PacmanQAgent):
         """
         "*** YOUR CODE HERE ***"
         feats = self.featExtractor.getFeatures(state, action)
+
         qval = 0
         for f in feats:
-          qval += feats[f] * self.getWeights()[f]
+            qval += feats[f] * self.getWeights()[f]
         return qval
 
 
@@ -199,8 +200,10 @@ class ApproximateQAgent(PacmanQAgent):
         legalActions = self.getLegalActions(state)
         for action in legalActions:
           qvals[action] = self.getQValue(state, action)
+          if qvals[action] < 0: qvals[action] = 0.0
 
         # compute sum and determine values
+
         qvalsSum = sum(qvals.values())
         if not qvalsSum: qvalsSum = 1.0
         for action in qvals:
@@ -212,14 +215,27 @@ class ApproximateQAgent(PacmanQAgent):
            Should update your weights based on transition
         """
         feats = self.featExtractor.getFeatures(state, action)
-        qvalsPerc = self.calculateQValsPercentage(state)
         # ------------ LOG -------------
 
+####### TODO  % moves and optimizations with getQVal
+
+
+        qvalsPerc = self.calculateQValsPercentage(state)
+        qvals = util.Counter()
+        legalActions = self.getLegalActions(state)
+        for action in legalActions:
+          qvals[action] = self.getQValue(state, action)
+
+        import os
+        os.system('clear')
         print "--- Update ---"
+
         directions = {'West': 'Left', 'East': 'Right', 'North': 'Up', 'South': 'Down', 'Stop': 'Stop'}
         dirs = ['West', 'North', 'East', 'South', 'Stop']
         for act in dirs:
-            print '%s: %f%%' % (directions[act], qvalsPerc[act])
+            print '%s: %f %f%%' % (directions[act], qvals[act], qvalsPerc[act])
+        for stateW in self.getWeights().sortedKeys():
+            print "State ", stateW, " has weight ", self.getWeights()[stateW]
         for name in feats.sortedKeysByName():
             if name == "bias": continue
             print "%s: %f" % (name, feats[name] * 100)

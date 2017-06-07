@@ -62,7 +62,28 @@ def closestFood(pos, food, walls):
         for nbr_x, nbr_y in nbrs:
             fringe.append((nbr_x, nbr_y, dist+1))
     # no food found
-    return None
+    return 0.0
+
+def smallestFoodPath(pos, food, walls):
+    """
+    smallestFoodPath -- determine how many food left on this path (up to 5)
+    """
+    fringe = [(pos[0], pos[1], 0)]
+    expanded = set()
+    while fringe:
+        pos_x, pos_y, dist = fringe.pop(0)
+        expanded.add((pos_x, pos_y))
+        # spread out from the location to its neighbours
+        nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
+        countWithFood = 0
+        for nbr_x, nbr_y in nbrs:
+            if (nbr_x, nbr_y) not in expanded and food[nbr_x][nbr_y]:
+                fringe.append((nbr_x, nbr_y, dist+1))
+                countWithFood += 1
+        if countWithFood == 0 and food[pos_x][pos_y] or dist == 5: # dist > 0 ?
+            return dist
+    # no food found
+    return 5
 
 def closestScaredGhost(pos, ghosts, walls):
     """
@@ -106,7 +127,7 @@ class SimpleExtractor(FeatureExtractor):
 
         features = util.Counter()
 
-        features["bias"] = 1.0
+        features["bias"] = 0.5
 
         # compute the location of pacman after he takes the action
         x, y = state.getPacmanPosition()
@@ -114,7 +135,7 @@ class SimpleExtractor(FeatureExtractor):
         next_x, next_y = int(x + dx), int(y + dy)
 
         # count the number of ghosts 1-step away
-        features["#-of-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g.getPosition(), walls) for g in ghosts if g.scaredTimer == 0)
+        features["#-of-ghosts-1-step-away"] = sum(g.getPosition() in Actions.getLegalNeighbors((next_x, next_y), walls) for g in ghosts if g.scaredTimer == 0)
 
         # closest scared goast
         features["closest-scared-ghost"] = 0.0
@@ -131,6 +152,12 @@ class SimpleExtractor(FeatureExtractor):
         if not features["#-of-ghosts-1-step-away"] and food[next_x][next_y]:
             features["eats-food"] = 1.0
 
+        # eat small path (< 5) of food before if there is a choice
+        features["eat-small-path-food"] = 0.0
+        if features["eats-food"]:
+            features["eat-small-path-food"] = (5.0 - smallestFoodPath((next_x, next_y), food, walls)) / 10.0
+
+
         dist = closestFood((next_x, next_y), food, walls)
         features["closest-food"] = 0.0
         if dist is not None:
@@ -141,13 +168,17 @@ class SimpleExtractor(FeatureExtractor):
         # capsules
         features["capsule-1-step-away"] = 0.0
         if not features["#-of-ghosts-1-step-away"] and (next_x, next_y) in capsules:
-            features["capsule-1-step-away"] = 1.0
+            features["capsule-1-step-away"] = 10.0
+
+        # stopped
+        features["stopped"] = 1.0 if action == 'Stop' else 0.0
 
         # decrement all other features if pacman is chasing ghost
         if shouldChase:
             features["eats-food"] /= 10.0
             features["closest-food"] /= 10.0
             features["capsule-1-step-away"] /= 10.0
+            features["eat-small-path-food"] /= 10.0
 
         features.divideAll(10.0)
         return features
