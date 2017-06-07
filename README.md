@@ -7,4 +7,4 @@ To run a program:
 python pacman.py -p ApproximateQAgent -a extractor=SimpleExtractor -x 50 -n 60 -l mediumClassic
 
 500 episodes of training, 510 episodes total (advanced agent):
-python pacman.py -p ApproximateQAgent -a extractor=SimpleExtractor -x 50 -n 60 -l mediumClassic
+python pacman.py -p ApproximateQAgent -a extractor=SimpleExtractor -x 500 -n 510 -l mediumClassic
