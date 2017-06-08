@@ -270,15 +270,18 @@ class Counter(dict):
         for key in keys:
             self[key] += count
 
-    def argMax(self):
+    def argMax(self, allMax=False):
         """
         Returns the key with the highest value.
         """
         if len(self.keys()) == 0: return None
         all = self.items()
         values = [x[1] for x in all]
-        maxIndex = values.index(max(values))
-        return all[maxIndex][0]
+        maxVal = max(values)
+        if allMax:
+            maxVals = [action[0] for action in all if action[1] == maxVal]
+            return maxVals
+        return all[values.index(maxVal)][0]
 
     def sortedKeys(self):
         """

@@ -86,7 +86,8 @@ class QLearningAgent(ReinforcementAgent):
         tmp = util.Counter()
         for action in legalActions:
           tmp[action] = self.getQValue(state, action)
-        return tmp.argMax()
+        actions = tmp.argMax(allMax=True)
+        return random.choice(actions)
 
     def getAction(self, state):
         """
@@ -190,25 +191,23 @@ class ApproximateQAgent(PacmanQAgent):
             qval += feats[f] * self.getWeights()[f]
         return qval
 
-
-
-    def calculateQValsPercentage(self, state):
-        qvals = util.Counter()
-        qvalsPerc = util.Counter()
-
-        # get qvals for a state
-        legalActions = self.getLegalActions(state)
-        for action in legalActions:
-          qvals[action] = self.getQValue(state, action)
-          if qvals[action] < 0: qvals[action] = 0.0
-
-        # compute sum and determine values
-
-        qvalsSum = sum(qvals.values())
-        if not qvalsSum: qvalsSum = 1.0
-        for action in qvals:
-            qvalsPerc[action] = qvals[action] / qvalsSum * 100
-        return qvalsPerc
+    # def calculateQValsPercentage(self, state):
+    #     qvals = util.Counter()
+    #     qvalsPerc = util.Counter()
+    #
+    #     # get qvals for a state
+    #     legalActions = self.getLegalActions(state)
+    #     for action in legalActions:
+    #       qvals[action] = self.getQValue(state, action)
+    #       if qvals[action] < 0: qvals[action] = 0.0
+    #
+    #     # compute sum and determine values
+    #
+    #     qvalsSum = sum(qvals.values())
+    #     if not qvalsSum: qvalsSum = 1.0
+    #     for action in qvals:
+    #         qvalsPerc[action] = qvals[action] / qvalsSum * 100
+    #     return qvalsPerc
 
     def update(self, state, action, nextState, reward):
         """
@@ -217,10 +216,10 @@ class ApproximateQAgent(PacmanQAgent):
         feats = self.featExtractor.getFeatures(state, action)
         # ------------ LOG -------------
 
-####### TODO  % moves and optimizations with getQVal
+####### TODO  optimizations with getQVal
 
 
-        qvalsPerc = self.calculateQValsPercentage(state)
+        # qvalsPerc = self.calculateQValsPercentage(state)
         qvals = util.Counter()
         legalActions = self.getLegalActions(state)
         for action in legalActions:
@@ -228,17 +227,24 @@ class ApproximateQAgent(PacmanQAgent):
 
         import os
         os.system('clear')
-        print "--- Update ---"
+        print "--- Update [%d] ---" % self.episodesSoFar
+
+        green = '\x1b[1;32;40m'
+        red = '\x1b[1;31;40m'
+        yellow = '\x1b[1;33;40m'
+        nocolor = '\x1b[0m'
+
+        color = lambda x: green if x > 0 else yellow if x == 0 else red
 
         directions = {'West': 'Left', 'East': 'Right', 'North': 'Up', 'South': 'Down', 'Stop': 'Stop'}
         dirs = ['West', 'North', 'East', 'South', 'Stop']
         for act in dirs:
-            print '%s: %f %f%%' % (directions[act], qvals[act], qvalsPerc[act])
+            print '%s: %s%f%s' % (directions[act], color(qvals[act]), qvals[act], nocolor) #, qvalsPerc[act])
         for stateW in self.getWeights().sortedKeys():
-            print "State ", stateW, " has weight ", self.getWeights()[stateW]
+            print "State ", stateW, " has weight %s%f%s" % (color(self.getWeights()[stateW]), self.getWeights()[stateW], nocolor)
         for name in feats.sortedKeysByName():
             if name == "bias": continue
-            print "%s: %f" % (name, feats[name] * 100)
+            print "%s: %s%f%s" % (name, color(feats[name]), feats[name] * 100, nocolor)
 
         # ------------ LOG -------------
 
