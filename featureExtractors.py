@@ -85,10 +85,9 @@ def smallestFoodPath(pos, food, walls):
     # no food found
     return 5
 
-def closestScaredGhost(pos, ghosts, walls):
+def closestGhost(pos, ghosts, walls):
     """
-    closestFood -- this is similar to the function that we have
-    worked on in the search project; here its all in one place
+    closestGhost -- find minimum distance to ghosts
     """
     fringe = [(pos[0], pos[1], 0)]
     expanded = set()
@@ -124,6 +123,10 @@ class SimpleExtractor(FeatureExtractor):
         capsules = state.getCapsules()
         walls = state.getWalls()
         ghosts = state.getGhostStates()
+        scaredGhosts = [g for g in ghosts if g.scaredTimer > 0]
+        notScaredGhosts = [g for g in ghosts if g.scaredTimer == 0]
+
+
 
         features = util.Counter()
 
@@ -135,15 +138,15 @@ class SimpleExtractor(FeatureExtractor):
         next_x, next_y = int(x + dx), int(y + dy)
 
         # count the number of ghosts 1-step away
-        features["#-of-ghosts-1-step-away"] = sum(g.getPosition() in Actions.getLegalNeighbors((next_x, next_y), walls) for g in ghosts if g.scaredTimer == 0)
+        features["#-of-ghosts-1-step-away"] = sum(g.getPosition() in Actions.getLegalNeighbors((next_x, next_y), walls) for g in notScaredGhosts)
 
-        # closest scared goast
+
+        # closest scared ghost
         features["closest-scared-ghost"] = 0.0
-        scaredGhosts = [g for g in ghosts if g.scaredTimer > 0]
         if scaredGhosts:
-            closest, dist = closestScaredGhost((next_x, next_y), scaredGhosts, walls)
+            closest, dist = closestGhost((next_x, next_y), scaredGhosts, walls)
             if (closest.scaredTimer / 2.0 > dist) and closest.scaredTimer >= 2:
-                features["closest-scared-ghost"] = (closest.scaredTimer / 2.0 - dist) / 10. # TODO fix
+                features["closest-scared-ghost"] = (closest.scaredTimer / 2.0 - dist + 10 / closest.scaredTimer) / 10.0 # TODO fix
         shouldChase = features["closest-scared-ghost"] > 0.0
 
 
@@ -175,7 +178,7 @@ class SimpleExtractor(FeatureExtractor):
 
         # decrement all other features if pacman is chasing ghost
         if shouldChase:
-            features["eats-food"] /= 10.0
+            features["eats-food"] /= 100.0
             features["closest-food"] /= 10.0
             features["capsule-1-step-away"] /= 10.0
             features["eat-small-path-food"] /= 10.0
