@@ -307,6 +307,9 @@ class PacmanGraphics:
         refresh()
 
     def animatePacman(self, pacman, prevPacman, image):
+        start = time.time()
+
+
         if self.frameTime < 0:
             print 'Press any key to step forward, "q" to play'
             keys = wait_for_keys()
@@ -325,6 +328,9 @@ class PacmanGraphics:
         else:
             self.movePacman(self.getPosition(pacman), self.getDirection(pacman), image)
         refresh()
+
+        elapsed = (time.time() - start)
+        print "animatePacman took ", elapsed, " time to finish"
 
     def getGhostColor(self, ghost, ghostIndex):
         if ghost.scaredTimer > 0:
@@ -386,6 +392,9 @@ class PacmanGraphics:
         moveCircle(eyes[3],(screen_x+self.gridSize*GHOST_SIZE*(0.3+dx), screen_y-self.gridSize*GHOST_SIZE*(0.3-dy)), self.gridSize*GHOST_SIZE*0.08)
 
     def moveGhost(self, ghost, ghostIndex, prevGhost, ghostImageParts, prevPos=None, newPos=None):
+
+        start = time.time()
+
         if not prevPos or not newPos:
             prevPos = self.getPosition(prevGhost)
             newPos = self.getPosition(ghost)
@@ -404,6 +413,11 @@ class PacmanGraphics:
         edit(ghostImageParts[0], ('fill', color), ('outline', color))
         self.moveEyes(newPos, self.getDirection(ghost), ghostImageParts[-4:])
         refresh()
+
+        elapsed = (time.time() - start)
+        print "moveGhost took ", elapsed, " time to finish"
+
+
 
     def animateGhost(self, ghost, ghostIndex, prevGhost, ghostImageParts):
         if self.frameTime > 0.01 or self.frameTime < 0:

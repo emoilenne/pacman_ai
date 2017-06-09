@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -500,6 +500,8 @@ def readCommand( argv ):
                       help='Display output as text only', default=False)
     parser.add_option('-q', '--quietTextGraphics', action='store_true', dest='quietGraphics',
                       help='Generate minimal output and no graphics', default=False)
+    parser.add_option('-d', '--displayTraining', action='store_true', dest='displayTraining',
+                      help='Display training process', default=False)
     parser.add_option('-g', '--ghosts', dest='ghost',
                       help=default('the ghost agent TYPE in the ghostAgents module to use'),
                       metavar = 'TYPE', default='RandomGhost')
@@ -570,6 +572,7 @@ def readCommand( argv ):
     args['record'] = options.record
     args['catchExceptions'] = options.catchExceptions
     args['timeout'] = options.timeout
+    args['displayTraining'] = options.displayTraining
 
     # Special case: recorded games don't use the runGames method or args structure
     if options.gameToReplay != None:
@@ -625,7 +628,7 @@ def replayGame( layout, actions, display ):
 
     display.finish()
 
-def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0, catchExceptions=False, timeout=30 ):
+def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0, catchExceptions=False, timeout=30, displayTraining=False ):
     import __main__
     __main__.__dict__['_display'] = display
 
@@ -633,7 +636,7 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
     games = []
 
     for i in range( numGames ):
-        beQuiet = i < numTraining
+        beQuiet = i < numTraining and not displayTraining
         if beQuiet:
                 # Suppress output and graphics
             import textDisplay

@@ -161,8 +161,12 @@ class SimpleExtractor(FeatureExtractor):
         # count the number of ghosts 1-step away
         features["#-of-ghosts-1-step-away"] = sum(g.getPosition() in Actions.getLegalNeighbors((next_x, next_y), walls) for g in notScaredGhosts)
 
-        # eat scared ghost ( continue in "closest scared ghost")
+        # eat scared ghost ( continue in "closest scared ghost" )
         features["eats-scared-ghost"] = 0.0
+
+        # ghost spawn location ( continue in "closest scared ghost" )
+        # features["at-ghost-spawn-location"] = 0.0
+        # start position state.data.agentStates[index].start.getPosition()
 
         # closest scared ghost
         features["closest-scared-ghost"] = 0.0
@@ -171,7 +175,10 @@ class SimpleExtractor(FeatureExtractor):
             if not features["#-of-ghosts-1-step-away"] and dist < 1.0:
                 features["eats-scared-ghost"] = 0.5
             if (closest.scaredTimer / 2.0 > dist) and closest.scaredTimer >= 2:
-                features["closest-scared-ghost"] = (closest.scaredTimer / 2.0 - dist) / 50.0 # TODO fix
+                features["closest-scared-ghost"] = (closest.scaredTimer / 2.0 - dist) / 50.0
+            # if closest.start.getPosition() == (next_x, next_y) and features["eats-scared-ghost"]:
+            #     features["at-ghost-spawn-location"] = 1.0
+
         shouldChase = features["closest-scared-ghost"] > 0.0
 
 
@@ -200,6 +207,8 @@ class SimpleExtractor(FeatureExtractor):
 
         # stopped
         # features["stopped"] = 1.0 if action == 'Stop' else 0.0
+
+
 
         # decrement all other features if pacman is chasing ghost
         if shouldChase:

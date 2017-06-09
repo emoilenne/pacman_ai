@@ -216,14 +216,20 @@ class ApproximateQAgent(PacmanQAgent):
         feats = self.featExtractor.getFeatures(state, action)
         # ------------ LOG -------------
 
-####### TODO  optimizations with getQVal
+####### TODO
+#
+#       optimization with getQValue
+#       display training
+#
+#
+#
 
 
         # qvalsPerc = self.calculateQValsPercentage(state)
         qvals = util.Counter()
         legalActions = self.getLegalActions(state)
-        for action in legalActions:
-          qvals[action] = self.getQValue(state, action)
+        for act in legalActions:
+          qvals[act] = self.getQValue(state, act)
 
         import os
         os.system('clear')
@@ -239,7 +245,10 @@ class ApproximateQAgent(PacmanQAgent):
         directions = {'West': 'Left', 'East': 'Right', 'North': 'Up', 'South': 'Down', 'Stop': 'Stop'}
         dirs = ['West', 'North', 'East', 'South', 'Stop']
         for act in dirs:
-            print '%s: %s%f%s' % (directions[act], color(qvals[act]), qvals[act], nocolor) #, qvalsPerc[act])
+            actStr = directions[act]
+            if actStr == directions[action]:
+                actStr = green + actStr + nocolor
+            print '%s: %s%f%s' % (actStr, color(qvals[act]), qvals[act], nocolor) #, qvalsPerc[act])
         for stateW in self.getWeights().sortedKeys():
             print "State ", stateW, " has weight %s%f%s" % (color(self.getWeights()[stateW]), self.getWeights()[stateW], nocolor)
         for name in feats.sortedKeysByName():
