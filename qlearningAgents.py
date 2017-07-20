@@ -176,7 +176,6 @@ class ApproximateQAgent(PacmanQAgent):
         self.featExtractor = util.lookup(extractor, globals())()
         PacmanQAgent.__init__(self, **args)
         self.weights = util.Counter()
-        self.lastEpisode = self.episodesSoFar - 1
 
     def getWeights(self):
         return self.weights
@@ -213,6 +212,7 @@ class ApproximateQAgent(PacmanQAgent):
         for act in self.getLegalActions(state):
             logInfo.qvals[act] = self.getQValue(state, act)
         logInfo.weights = self.getWeights()
+        logInfo.episodesSoFar = self.episodesSoFar
         return logInfo
         # print "--- Update [%d] ---" % self.episodesSoFar
         #
@@ -235,7 +235,7 @@ class ApproximateQAgent(PacmanQAgent):
         "Called at the end of each game."
         # call the super-class final method
         PacmanQAgent.final(self, state)
-
+        print(" Completed episode #%d" % self.episodesSoFar)
         # did we finish training?
         if self.episodesSoFar == self.numTraining:
             # you might want to print your weights here for debugging

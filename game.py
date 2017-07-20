@@ -687,7 +687,7 @@ class Game:
                 action = agent.getAction(observation)
             self.unmute()
 
-            if agentIndex == 0 and 'log' in dir(agent):
+            if 'layout' in dir(self.display) and agentIndex == 0 and 'log' in dir(agent):
                 logInfo = agent.log(self.state, action, self.display.layout, self.display.gridSize)
                 self.display.updateLog(logInfo)
                 # if display is on

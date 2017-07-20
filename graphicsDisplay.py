@@ -92,6 +92,7 @@ class StatsPane:
         self.width = LEARNING_PANE_WIDTH
         self.base = (layout.width + 1) * gridSize
         self.height = (layout.height + 1) * gridSize + INFO_PANE_HEIGHT
+        self.layoutHeight = (layout.height + 0.75) * gridSize
         self.fontSize = 24
         self.statsFontSize = 18
         self.drawPane()
@@ -103,79 +104,81 @@ class StatsPane:
             x = pos
 
         x = self.base + 0.5 * self.gridSize + x
-        y = 0.5 * self.gridSize + y
+        y = 0.75 * self.gridSize + y
         return x,y
 
     def drawPane(self):
         corners = [(self.base, 0), (self.base, self.height - 1), (self.base + 2, self.height - 1), (self.base + 2, 0)]
         polygon(corners, BLUE_COLOR, fillColor=BLUE_COLOR, filled=True, smoothed=False)
-        text( self.toScreen(0, 0), YELLOW_COLOR, "Directions", "Colibri", self.fontSize, "bold")
-        text( self.toScreen(0, 50), YELLOW_COLOR, "Left", "Colibri", self.statsFontSize, "bold")
-        text( self.toScreen(0, 80), YELLOW_COLOR, "Right", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0,   0), YELLOW_COLOR, "Directions", "Colibri", self.fontSize, "bold")
+        text( self.toScreen(0,  50), YELLOW_COLOR, "Left", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0,  80), YELLOW_COLOR, "Right", "Colibri", self.statsFontSize, "bold")
         text( self.toScreen(0, 110), YELLOW_COLOR, "Up", "Colibri", self.statsFontSize, "bold")
         text( self.toScreen(0, 140), YELLOW_COLOR, "Down", "Colibri", self.statsFontSize, "bold")
         text( self.toScreen(0, 170), YELLOW_COLOR, "Stop", "Colibri", self.statsFontSize, "bold")
-        text( self.toScreen(0, 210), YELLOW_COLOR, "Observation", "Colibri", self.fontSize, "bold")
-        text( self.toScreen(0, 260), YELLOW_COLOR, "Nearby ghosts", "Colibri", self.statsFontSize, "bold")
-        text( self.toScreen(0, 290), YELLOW_COLOR, "Nearby capsule", "Colibri", self.statsFontSize, "bold")
-        text( self.toScreen(0, 320), YELLOW_COLOR, "Closest scared ghost", "Colibri", self.statsFontSize, "bold")
-        text( self.toScreen(0, 350), YELLOW_COLOR, "Eats scared ghost", "Colibri", self.statsFontSize, "bold")
-        text( self.toScreen(0, 380), YELLOW_COLOR, "Eats food", "Colibri", self.statsFontSize, "bold")
-        text( self.toScreen(0, 410), YELLOW_COLOR, "Best food path", "Colibri", self.statsFontSize, "bold")
-        text( self.toScreen(0, 440), YELLOW_COLOR, "Closest food", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 240), YELLOW_COLOR, "Observation", "Colibri", self.fontSize, "bold")
+        text( self.toScreen(0, 290), YELLOW_COLOR, "Nearby ghosts", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 320), YELLOW_COLOR, "Nearby capsule", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 350), YELLOW_COLOR, "Closest scared ghost", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 380), YELLOW_COLOR, "Eats scared ghost", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 410), YELLOW_COLOR, "Eats food", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 440), YELLOW_COLOR, "Best food path", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 470), YELLOW_COLOR, "Closest food", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 540), YELLOW_COLOR, "States", "Colibri", self.fontSize, "bold")
+        text( self.toScreen(0, 590), YELLOW_COLOR, "Nearby ghosts", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 620), YELLOW_COLOR, "Nearby capsule", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 650), YELLOW_COLOR, "Closest scared ghost", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 680), YELLOW_COLOR, "Eats scared ghost", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 710), YELLOW_COLOR, "Eats food", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 740), YELLOW_COLOR, "Best food path", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 770), YELLOW_COLOR, "Closest food", "Colibri", self.statsFontSize, "bold")
+        text( (4 * self.gridSize, self.layoutHeight), YELLOW_COLOR, "GAME:", "Colibri", self.fontSize, "bold")
+        self.episodesNotSet = True
 
-        self.left = self.makeScale(52)
-        self.right = self.makeScale(82)
-        self.up = self.makeScale(112)
-        self.down = self.makeScale(142)
-        self.stop = self.makeScale(172)
+        self.left =                         self.makeScale( 52)
+        self.right =                        self.makeScale( 82)
+        self.up =                           self.makeScale(112)
+        self.down =                         self.makeScale(142)
+        self.stop =                         self.makeScale(172)
 
-        self.nearby_ghosts = self.makeScale(262)
-        self.nearby_capsule = self.makeScale(292)
-        self.closest_scared_ghost = self.makeScale(322)
-        self.eats_scared_ghost = self.makeScale(352)
-        self.eats_food = self.makeScale(382)
-        self.best_food_path = self.makeScale(412)
-        self.closest_food = self.makeScale(442)
+        self.nearby_ghosts =                self.makeScale(292)
+        self.nearby_capsule =               self.makeScale(322)
+        self.closest_scared_ghost =         self.makeScale(352)
+        self.eats_scared_ghost =            self.makeScale(382)
+        self.eats_food =                    self.makeScale(412)
+        self.best_food_path =               self.makeScale(442)
+        self.closest_food =                 self.makeScale(472)
+
+        self.state_nearby_ghosts =          self.makeScale(592)
+        self.state_nearby_capsule =         self.makeScale(622)
+        self.state_closest_scared_ghost =   self.makeScale(652)
+        self.state_eats_scared_ghost =      self.makeScale(682)
+        self.state_eats_food =              self.makeScale(712)
+        self.state_best_food_path =         self.makeScale(742)
+        self.state_closest_food =           self.makeScale(772)
 
 
     def makeScale(self, height, percentage=0):
         percentage /= 1.5
-        corners = [self.toScreen(230, height), self.toScreen(230, height + self.statsFontSize), self.toScreen(230 + percentage, height + self.statsFontSize), self.toScreen(230 + percentage, height)]
+        corners = [self.toScreen(280, height), self.toScreen(280, height + self.statsFontSize), self.toScreen(280 + percentage, height + self.statsFontSize), self.toScreen(280 + percentage, height)]
         color = GREEN_COLOR if percentage > 0 else RED_COLOR if percentage < 0 else YELLOW_COLOR
         return polygon(corners, color, filled=True, smoothed=False)
 
-    def calculatePercentage(self, qvals):
-        positiveMax = positiveMin = 0.001
-        negativeMax = negativeMin = -0.001
-        positive = negative = 0
-        border = 0.001
-        for qval in qvals.values():
-            if qval > positiveMax:
-                positiveMax = qval + border
-            elif 0 <= qval < positiveMin:
-                positiveMin = qval - border
-                if positiveMin < 0: positiveMin = 0
-            elif qval < negativeMax:
-                negativeMax = qval - border
-            elif 0 >= qval > negativeMin:
-                negativeMin = qval + border
-                if negativeMin > 0: negativeMin = 0
-            if qval > 0: positive += 1
-            elif qval < 0: negative += 1
-        percentage = util.Counter()
-        for name, qval in qvals.items():
-            if qval > 0:
-                percentage[name] = (qval - positiveMin) / (positiveMax - positiveMin) * 100 * (qval / positiveMax) * positive / 5
-            elif qval < 0:
-                percentage[name] = (qval - negativeMin) / -(negativeMax - positiveMin) * 100 * (qval / negativeMax) * negative / 5
-
+    def adjust(self, dictionary):
+        maxPositive = 0.001
+        maxNegative = -maxPositive
+        for val in dictionary.values():
+            if val > maxPositive:
+                maxPositive = val
+            elif val < maxNegative:
+                maxNegative = val
+        for key, val in dictionary.items():
+            if dictionary[key] > 0:
+                dictionary[key] = dictionary[key] / maxPositive * 100
+            else:
+                dictionary[key] = dictionary[key] / -maxNegative * 100
 
     def update(self, logInfo):
-        max = 0.001
-        for qval in logInfo.qvals.values():
-            if abs(qval) > max:
-                max = abs(qval)
         remove_from_screen(self.left)
         remove_from_screen(self.right)
         remove_from_screen(self.up)
@@ -190,20 +193,41 @@ class StatsPane:
         remove_from_screen(self.best_food_path)
         remove_from_screen(self.closest_food)
 
+        remove_from_screen(self.state_nearby_ghosts)
+        remove_from_screen(self.state_nearby_capsule)
+        remove_from_screen(self.state_closest_scared_ghost)
+        remove_from_screen(self.state_eats_scared_ghost)
+        remove_from_screen(self.state_eats_food)
+        remove_from_screen(self.state_best_food_path)
+        remove_from_screen(self.state_closest_food)
 
-        self.left = self.makeScale(52, logInfo.qvals['West'] / max * 100)
-        self.right = self.makeScale(82, logInfo.qvals['East'] / max * 100)
-        self.up = self.makeScale(112, logInfo.qvals['North'] / max * 100)
-        self.down = self.makeScale(142, logInfo.qvals['South'] / max * 100)
-        self.stop = self.makeScale(172, logInfo.qvals['Stop'] / max * 100)
+        self.adjust(logInfo.qvals)
+        self.adjust(logInfo.weights)
 
-        self.nearby_ghosts = self.makeScale(262, 500 * logInfo.feats['#-of-ghosts-1-step-away'])
-        self.nearby_capsule = self.makeScale(292, 20 * logInfo.feats['capsule-nearby'])
-        self.closest_scared_ghost = self.makeScale(322, 6 * logInfo.feats['closest-scared-ghost'])
-        self.eats_scared_ghost = self.makeScale(352, 100 * logInfo.feats['eats-scared-ghost'])
-        self.eats_food = self.makeScale(382, 5000 * logInfo.feats['eats-food'])
-        self.best_food_path = self.makeScale(412, 20 * logInfo.feats['eat-small-path-food'])
-        self.closest_food = self.makeScale(442, 10000 * (0.01 - logInfo.feats['closest-food']))
+        self.left =                         self.makeScale( 52, logInfo.qvals['West'])
+        self.right =                        self.makeScale( 82, logInfo.qvals['East'])
+        self.up =                           self.makeScale(112, logInfo.qvals['North'])
+        self.down =                         self.makeScale(142, logInfo.qvals['South'])
+        self.stop =                         self.makeScale(172, logInfo.qvals['Stop'])
+        self.nearby_ghosts =                self.makeScale(292, 500 * logInfo.feats['#-of-ghosts-1-step-away'])
+        self.nearby_capsule =               self.makeScale(322, 2000 * logInfo.feats['capsule-nearby'])
+        self.closest_scared_ghost =         self.makeScale(352, 5000 * logInfo.feats['closest-scared-ghost'])
+        self.eats_scared_ghost =            self.makeScale(382, 5000 * logInfo.feats['eats-scared-ghost'])
+        self.eats_food =                    self.makeScale(412, 5000 * logInfo.feats['eats-food'])
+        self.best_food_path =               self.makeScale(442, 10000 * logInfo.feats['eat-small-path-food'])
+        self.closest_food =                 self.makeScale(472, 10000 * (0.01 - logInfo.feats['closest-food']))
+        self.state_nearby_ghosts =          self.makeScale(592, logInfo.weights['#-of-ghosts-1-step-away'])
+        self.state_nearby_capsule =         self.makeScale(622, logInfo.weights['capsule-nearby'])
+        self.state_closest_scared_ghost =   self.makeScale(652, logInfo.weights['closest-scared-ghost'])
+        self.state_eats_scared_ghost =      self.makeScale(682, logInfo.weights['eats-scared-ghost'])
+        self.state_eats_food =              self.makeScale(712, logInfo.weights['eats-food'])
+        self.state_best_food_path =         self.makeScale(742, logInfo.weights['eat-small-path-food'])
+        self.state_closest_food =           self.makeScale(772, logInfo.weights['closest-food'])
+
+        if self.episodesNotSet:
+            text( (4 * self.gridSize, self.layoutHeight), YELLOW_COLOR, "GAME: % 4d" % logInfo.episodesSoFar, "Colibri", self.fontSize, "bold")
+            self.episodesNotSet = False
+
 
 
         Tkinter.tkinter.dooneevent(Tkinter.tkinter.DONT_WAIT)
@@ -213,7 +237,7 @@ class InfoPane:
     def __init__(self, layout, gridSize):
         self.gridSize = gridSize
         self.width = (layout.width) * gridSize
-        self.base = (layout.height + 1) * gridSize
+        self.base = (layout.height + 0.75) * gridSize
         self.height = INFO_PANE_HEIGHT
         self.fontSize = 24
         self.textColor = PACMAN_COLOR
@@ -466,7 +490,7 @@ class PacmanGraphics:
         refresh()
 
         elapsed = (time.time() - start)
-        print "animatePacman took ", elapsed, " time to finish"
+        # print "animatePacman took ", elapsed, " time to finish"
 
     def getGhostColor(self, ghost, ghostIndex):
         if ghost.scaredTimer > 0:
@@ -551,7 +575,7 @@ class PacmanGraphics:
         refresh()
 
         elapsed = (time.time() - start)
-        print "moveGhost took ", elapsed, " time to finish"
+        # print "moveGhost took ", elapsed, " time to finish"
 
 
 
