@@ -271,7 +271,7 @@ class ClassicGameRules:
     def __init__(self, timeout=30):
         self.timeout = timeout
 
-    def newGame( self, layout, pacmanAgent, ghostAgents, display, quiet = False, catchExceptions=False):
+    def newGame( self, layout, pacmanAgent, ghostAgents, display, quiet=False, catchExceptions=False):
         agents = [pacmanAgent] + ghostAgents[:layout.getNumGhosts()]
         initState = GameState()
         initState.initialize( layout, len(ghostAgents) )
@@ -502,6 +502,8 @@ def readCommand( argv ):
                       help='Generate minimal output and no graphics', default=False)
     parser.add_option('-d', '--displayTraining', action='store_true', dest='displayTraining',
                       help='Display training process', default=False)
+    parser.add_option('-u', '--disableQuiet', action='store_false', dest='quiet',
+                      help='Disable quiet mode', default=True)
     parser.add_option('-g', '--ghosts', dest='ghost',
                       help=default('the ghost agent TYPE in the ghostAgents module to use'),
                       metavar = 'TYPE', default='RandomGhost')
@@ -532,7 +534,7 @@ def readCommand( argv ):
     args = dict()
 
     # Fix the random seed
-    if options.fixRandomSeed: random.seed('cs188')
+    if options.fixRandomSeed: random.seed('42isthebest')
 
     # Choose a layout
     args['layout'] = layout.getLayout( options.layout )
@@ -573,6 +575,7 @@ def readCommand( argv ):
     args['catchExceptions'] = options.catchExceptions
     args['timeout'] = options.timeout
     args['displayTraining'] = options.displayTraining
+    args['quiet'] = options.quiet
 
     # Special case: recorded games don't use the runGames method or args structure
     if options.gameToReplay != None:
@@ -628,7 +631,7 @@ def replayGame( layout, actions, display ):
 
     display.finish()
 
-def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0, catchExceptions=False, timeout=30, displayTraining=False ):
+def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0, catchExceptions=False, timeout=30, displayTraining=False, quiet=True ):
     import __main__
     __main__.__dict__['_display'] = display
 
@@ -645,7 +648,7 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
         else:
             gameDisplay = display
             rules.quiet = False
-        game = rules.newGame( layout, pacman, ghosts, gameDisplay, beQuiet, catchExceptions)
+        game = rules.newGame( layout, pacman, ghosts, gameDisplay, quiet, catchExceptions)
         game.run()
         if not beQuiet: games.append(game)
 
@@ -665,6 +668,10 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
         print 'Scores:       ', ', '.join([str(score) for score in scores])
         print 'Win Rate:      %d/%d (%.2f)' % (wins.count(True), len(wins), winRate)
         print 'Record:       ', ', '.join([ ['Loss', 'Win'][int(w)] for w in wins])
+
+        file = open('results.txt', 'a+')
+        file.write(str(sum(scores) / float(len(scores))) + '\n')
+        file.close()
 
     return games
 

@@ -16,6 +16,8 @@ from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
 
+_learning = None
+
 import random,util,math
 
 class QLearningAgent(ReinforcementAgent):
@@ -133,7 +135,7 @@ class QLearningAgent(ReinforcementAgent):
 class PacmanQAgent(QLearningAgent):
     "Exactly the same as QLearningAgent, but with different default parameters"
 
-    def __init__(self, epsilon=0.05,gamma=0.8,alpha=0.2, numTraining=0, **args):
+    def __init__(self, epsilon=1.0,gamma=0.8,alpha=0.1, numTraining=0, **args):
         """
         These default parameters can be changed from the pacman.py command line.
         For example, to change the exploration rate, try:
@@ -174,6 +176,7 @@ class ApproximateQAgent(PacmanQAgent):
         self.featExtractor = util.lookup(extractor, globals())()
         PacmanQAgent.__init__(self, **args)
         self.weights = util.Counter()
+        self.lastEpisode = self.episodesSoFar - 1
 
     def getWeights(self):
         return self.weights
@@ -191,74 +194,42 @@ class ApproximateQAgent(PacmanQAgent):
             qval += feats[f] * self.getWeights()[f]
         return qval
 
-    # def calculateQValsPercentage(self, state):
-    #     qvals = util.Counter()
-    #     qvalsPerc = util.Counter()
-    #
-    #     # get qvals for a state
-    #     legalActions = self.getLegalActions(state)
-    #     for action in legalActions:
-    #       qvals[action] = self.getQValue(state, action)
-    #       if qvals[action] < 0: qvals[action] = 0.0
-    #
-    #     # compute sum and determine values
-    #
-    #     qvalsSum = sum(qvals.values())
-    #     if not qvalsSum: qvalsSum = 1.0
-    #     for action in qvals:
-    #         qvalsPerc[action] = qvals[action] / qvalsSum * 100
-    #     return qvalsPerc
 
     def update(self, state, action, nextState, reward):
         """
            Should update your weights based on transition
         """
         feats = self.featExtractor.getFeatures(state, action)
-        # ------------ LOG -------------
-
-####### TODO
-#
-#       optimization with getQValue
-#       display training
-#
-#
-#
-
-
-        # qvalsPerc = self.calculateQValsPercentage(state)
-        qvals = util.Counter()
-        legalActions = self.getLegalActions(state)
-        for act in legalActions:
-          qvals[act] = self.getQValue(state, act)
-
-        import os
-        os.system('clear')
-        print "--- Update [%d] ---" % self.episodesSoFar
-
-        green = '\x1b[1;32;40m'
-        red = '\x1b[1;31;40m'
-        yellow = '\x1b[1;33;40m'
-        nocolor = '\x1b[0m'
-
-        color = lambda x: green if x > 0 else yellow if x == 0 else red
-
-        directions = {'West': 'Left', 'East': 'Right', 'North': 'Up', 'South': 'Down', 'Stop': 'Stop'}
-        dirs = ['West', 'North', 'East', 'South', 'Stop']
-        for act in dirs:
-            actStr = directions[act]
-            if actStr == directions[action]:
-                actStr = green + actStr + nocolor
-            print '%s: %s%f%s' % (actStr, color(qvals[act]), qvals[act], nocolor) #, qvalsPerc[act])
-        for stateW in self.getWeights().sortedKeys():
-            print "State ", stateW, " has weight %s%f%s" % (color(self.getWeights()[stateW]), self.getWeights()[stateW], nocolor)
-        for name in feats.sortedKeysByName():
-            if name == "bias": continue
-            print "%s: %s%f%s" % (name, color(feats[name]), feats[name] * 100, nocolor)
-
-        # ------------ LOG -------------
+        self.epsilon *= 0.9995
 
         for f in feats:
-          self.weights[f] = self.weights[f] + self.alpha * feats[f]*((reward + self.discount * self.computeValueFromQValues(nextState)) - self.getQValue(state, action))
+            self.weights[f] = self.weights[f] + self.alpha * feats[f]*((reward + self.discount * self.computeValueFromQValues(nextState)) - self.getQValue(state, action))
+
+
+    def log(self, state, action, layout, gridSize):
+        logInfo = util.Counter()
+        logInfo.feats = self.featExtractor.getFeatures(state, action)
+        logInfo.qvals = util.Counter()
+        for act in self.getLegalActions(state):
+            logInfo.qvals[act] = self.getQValue(state, act)
+        logInfo.weights = self.getWeights()
+        return logInfo
+        # print "--- Update [%d] ---" % self.episodesSoFar
+        #
+        # directions = {'West': 'Left', 'East': 'Right', 'North': 'Up', 'South': 'Down', 'Stop': 'Stop'}
+        # dirs = ['West', 'North', 'East', 'South', 'Stop']
+        # for act in dirs:
+        #     actStr = directions[act]
+        #     if actStr == directions[action]:
+        #         actStr = green + actStr + nocolor
+        #     print '%s: %s%f%s' % (actStr, color(qvals[act]), qvals[act], nocolor)
+        # for stateW in self.getWeights().sortedKeys():
+        #     print "State ", stateW, " has weight %s%f%s" % (color(self.getWeights()[stateW]), self.getWeights()[stateW], nocolor)
+        # for name in feats.sortedKeysByName():
+        #     if name == "bias": continue
+        #     print "%s: %s%f%s" % (name, color(feats[name]), feats[name] * 100, nocolor)
+
+
 
     def final(self, state):
         "Called at the end of each game."

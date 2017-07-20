@@ -58,9 +58,9 @@ def begin_graphics(width=640, height=480, color=formatColor(0, 0, 0), title=None
     global _root_window, _canvas, _canvas_x, _canvas_y, _canvas_xs, _canvas_ys, _bg_color
 
     # Check for duplicate call
-    if _root_window is not None:
+    # if _root_window is not None: ------------- ME
         # Lose the window.
-        _root_window.destroy()
+        # _root_window.destroy() ------------- ME
 
     # Save the canvas size parameters
     _canvas_xs, _canvas_ys = width - 1, height - 1
@@ -68,31 +68,35 @@ def begin_graphics(width=640, height=480, color=formatColor(0, 0, 0), title=None
     _bg_color = color
 
     # Create the root window
-    _root_window = Tkinter.Tk()
-    _root_window.protocol('WM_DELETE_WINDOW', _destroy_window)
-    _root_window.title(title or 'Graphics Window')
-    _root_window.resizable(0, 0)
+    if not _root_window: # ------------ ME
+        _root_window = Tkinter.Tk()
+        _root_window.protocol('WM_DELETE_WINDOW', _destroy_window)
+        _root_window.title(title or 'Graphics Window')
+        _root_window.resizable(0, 0)
 
-    # Create the canvas object
-    try:
-        _canvas = Tkinter.Canvas(_root_window, width=width, height=height)
-        _canvas.pack()
+        # Create the canvas object
+        try:
+            _canvas = Tkinter.Canvas(_root_window, width=width, height=height)
+            _canvas.pack()
+            draw_background()
+            _canvas.update()
+        except:
+            _root_window = None
+            raise
+
+        # Bind to key-down and key-up events
+        _root_window.bind( "<KeyPress>", _keypress )
+        _root_window.bind( "<KeyRelease>", _keyrelease )
+        _root_window.bind( "<FocusIn>", _clear_keys )
+        _root_window.bind( "<FocusOut>", _clear_keys )
+        _root_window.bind( "<Button-1>", _leftclick )
+        _root_window.bind( "<Button-2>", _rightclick )
+        _root_window.bind( "<Button-3>", _rightclick )
+        _root_window.bind( "<Control-Button-1>", _ctrl_leftclick)
+        _clear_keys()
+    else: #------------- ME
+        time.sleep(1)
         draw_background()
-        _canvas.update()
-    except:
-        _root_window = None
-        raise
-
-    # Bind to key-down and key-up events
-    _root_window.bind( "<KeyPress>", _keypress )
-    _root_window.bind( "<KeyRelease>", _keyrelease )
-    _root_window.bind( "<FocusIn>", _clear_keys )
-    _root_window.bind( "<FocusOut>", _clear_keys )
-    _root_window.bind( "<Button-1>", _leftclick )
-    _root_window.bind( "<Button-2>", _rightclick )
-    _root_window.bind( "<Button-3>", _rightclick )
-    _root_window.bind( "<Control-Button-1>", _ctrl_leftclick)
-    _clear_keys()
 
 _leftclick_loc = None
 _rightclick_loc = None
@@ -313,7 +317,8 @@ def remove_from_screen(x,
                        d_o_e=Tkinter.tkinter.dooneevent,
                        d_w=Tkinter.tkinter.DONT_WAIT):
     _canvas.delete(x)
-    d_o_e(d_w)
+    # d_o_e(d_w)
+    # sleep(0.0001)
 
 def _adjust_coords(coord_list, x, y):
     for i in range(0, len(coord_list), 2):

@@ -25,6 +25,7 @@ from game import Directions
 
 DEFAULT_GRID_SIZE = 30.0
 INFO_PANE_HEIGHT = 35
+LEARNING_PANE_WIDTH = 400
 BACKGROUND_COLOR = formatColor(0,0,0)
 WALL_COLOR = formatColor(0.0/255.0, 51.0/255.0, 255.0/255.0)
 INFO_PANE_COLOR = formatColor(.4,.4,0)
@@ -39,6 +40,12 @@ GHOST_COLORS.append(formatColor(.98,.41,.07)) # Orange
 GHOST_COLORS.append(formatColor(.1,.75,.7)) # Green
 GHOST_COLORS.append(formatColor(1.0,0.6,0.0)) # Yellow
 GHOST_COLORS.append(formatColor(.4,0.13,0.91)) # Purple
+
+GREEN_COLOR = formatColor(0,.75,.7)
+YELLOW_COLOR = formatColor(1.0,1.0,0.0)
+RED_COLOR = formatColor(.9,0,0)
+BLUE_COLOR = formatColor(0,.3,.9)
+
 
 TEAM_COLORS = GHOST_COLORS[:2]
 
@@ -79,6 +86,129 @@ CAPSULE_SIZE = 0.25
 # Drawing walls
 WALL_RADIUS = 0.15
 
+class StatsPane:
+    def __init__(self, layout, gridSize):
+        self.gridSize = gridSize
+        self.width = LEARNING_PANE_WIDTH
+        self.base = (layout.width + 1) * gridSize
+        self.height = (layout.height + 1) * gridSize + INFO_PANE_HEIGHT
+        self.fontSize = 24
+        self.statsFontSize = 18
+        self.drawPane()
+
+    def toScreen(self, pos, y = None):
+        if y == None:
+            x,y = pos
+        else:
+            x = pos
+
+        x = self.base + 0.5 * self.gridSize + x
+        y = 0.5 * self.gridSize + y
+        return x,y
+
+    def drawPane(self):
+        corners = [(self.base, 0), (self.base, self.height - 1), (self.base + 2, self.height - 1), (self.base + 2, 0)]
+        polygon(corners, BLUE_COLOR, fillColor=BLUE_COLOR, filled=True, smoothed=False)
+        text( self.toScreen(0, 0), YELLOW_COLOR, "Directions", "Colibri", self.fontSize, "bold")
+        text( self.toScreen(0, 50), YELLOW_COLOR, "Left", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 80), YELLOW_COLOR, "Right", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 110), YELLOW_COLOR, "Up", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 140), YELLOW_COLOR, "Down", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 170), YELLOW_COLOR, "Stop", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 210), YELLOW_COLOR, "Observation", "Colibri", self.fontSize, "bold")
+        text( self.toScreen(0, 260), YELLOW_COLOR, "Nearby ghosts", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 290), YELLOW_COLOR, "Nearby capsule", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 320), YELLOW_COLOR, "Closest scared ghost", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 350), YELLOW_COLOR, "Eats scared ghost", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 380), YELLOW_COLOR, "Eats food", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 410), YELLOW_COLOR, "Best food path", "Colibri", self.statsFontSize, "bold")
+        text( self.toScreen(0, 440), YELLOW_COLOR, "Closest food", "Colibri", self.statsFontSize, "bold")
+
+        self.left = self.makeScale(52)
+        self.right = self.makeScale(82)
+        self.up = self.makeScale(112)
+        self.down = self.makeScale(142)
+        self.stop = self.makeScale(172)
+
+        self.nearby_ghosts = self.makeScale(262)
+        self.nearby_capsule = self.makeScale(292)
+        self.closest_scared_ghost = self.makeScale(322)
+        self.eats_scared_ghost = self.makeScale(352)
+        self.eats_food = self.makeScale(382)
+        self.best_food_path = self.makeScale(412)
+        self.closest_food = self.makeScale(442)
+
+
+    def makeScale(self, height, percentage=0):
+        percentage /= 1.5
+        corners = [self.toScreen(230, height), self.toScreen(230, height + self.statsFontSize), self.toScreen(230 + percentage, height + self.statsFontSize), self.toScreen(230 + percentage, height)]
+        color = GREEN_COLOR if percentage > 0 else RED_COLOR if percentage < 0 else YELLOW_COLOR
+        return polygon(corners, color, filled=True, smoothed=False)
+
+    def calculatePercentage(self, qvals):
+        positiveMax = positiveMin = 0.001
+        negativeMax = negativeMin = -0.001
+        positive = negative = 0
+        border = 0.001
+        for qval in qvals.values():
+            if qval > positiveMax:
+                positiveMax = qval + border
+            elif 0 <= qval < positiveMin:
+                positiveMin = qval - border
+                if positiveMin < 0: positiveMin = 0
+            elif qval < negativeMax:
+                negativeMax = qval - border
+            elif 0 >= qval > negativeMin:
+                negativeMin = qval + border
+                if negativeMin > 0: negativeMin = 0
+            if qval > 0: positive += 1
+            elif qval < 0: negative += 1
+        percentage = util.Counter()
+        for name, qval in qvals.items():
+            if qval > 0:
+                percentage[name] = (qval - positiveMin) / (positiveMax - positiveMin) * 100 * (qval / positiveMax) * positive / 5
+            elif qval < 0:
+                percentage[name] = (qval - negativeMin) / -(negativeMax - positiveMin) * 100 * (qval / negativeMax) * negative / 5
+
+
+    def update(self, logInfo):
+        max = 0.001
+        for qval in logInfo.qvals.values():
+            if abs(qval) > max:
+                max = abs(qval)
+        remove_from_screen(self.left)
+        remove_from_screen(self.right)
+        remove_from_screen(self.up)
+        remove_from_screen(self.down)
+        remove_from_screen(self.stop)
+
+        remove_from_screen(self.nearby_ghosts)
+        remove_from_screen(self.nearby_capsule)
+        remove_from_screen(self.closest_scared_ghost)
+        remove_from_screen(self.eats_scared_ghost)
+        remove_from_screen(self.eats_food)
+        remove_from_screen(self.best_food_path)
+        remove_from_screen(self.closest_food)
+
+
+        self.left = self.makeScale(52, logInfo.qvals['West'] / max * 100)
+        self.right = self.makeScale(82, logInfo.qvals['East'] / max * 100)
+        self.up = self.makeScale(112, logInfo.qvals['North'] / max * 100)
+        self.down = self.makeScale(142, logInfo.qvals['South'] / max * 100)
+        self.stop = self.makeScale(172, logInfo.qvals['Stop'] / max * 100)
+
+        self.nearby_ghosts = self.makeScale(262, 500 * logInfo.feats['#-of-ghosts-1-step-away'])
+        self.nearby_capsule = self.makeScale(292, 20 * logInfo.feats['capsule-nearby'])
+        self.closest_scared_ghost = self.makeScale(322, 6 * logInfo.feats['closest-scared-ghost'])
+        self.eats_scared_ghost = self.makeScale(352, 100 * logInfo.feats['eats-scared-ghost'])
+        self.eats_food = self.makeScale(382, 5000 * logInfo.feats['eats-food'])
+        self.best_food_path = self.makeScale(412, 20 * logInfo.feats['eat-small-path-food'])
+        self.closest_food = self.makeScale(442, 10000 * (0.01 - logInfo.feats['closest-food']))
+
+
+        Tkinter.tkinter.dooneevent(Tkinter.tkinter.DONT_WAIT)
+
+
 class InfoPane:
     def __init__(self, layout, gridSize):
         self.gridSize = gridSize
@@ -103,7 +233,7 @@ class InfoPane:
         return x,y
 
     def drawPane(self):
-        self.scoreText = text( self.toScreen(0, 0  ), self.textColor, "SCORE:    0", "Times", self.fontSize, "bold")
+        self.scoreText = text( self.toScreen(0, 0  ), self.textColor, "SCORE:    0", "Colibri", self.fontSize, "bold")
 
     def initializeGhostDistances(self, distances):
         self.ghostDistanceText = []
@@ -115,11 +245,12 @@ class InfoPane:
             size = 10
 
         for i, d in enumerate(distances):
-            t = text( self.toScreen(self.width/2 + self.width/8 * i, 0), GHOST_COLORS[i+1], d, "Times", size, "bold")
+            t = text( self.toScreen(self.width/2 + self.width/8 * i, 0), GHOST_COLORS[i+1], d, "Colibri", size, "bold")
             self.ghostDistanceText.append(t)
 
     def updateScore(self, score):
         changeText(self.scoreText, "SCORE: % 4d" % score)
+
 
     def setTeam(self, isBlue):
         text = "RED TEAM"
@@ -184,6 +315,7 @@ class PacmanGraphics:
         self.height = layout.height
         self.make_window(self.width, self.height)
         self.infoPane = InfoPane(layout, self.gridSize)
+        self.statsPane = StatsPane(layout, self.gridSize)
         self.currentState = layout
 
     def drawDistributions(self, state):
@@ -233,7 +365,11 @@ class PacmanGraphics:
             self.agentImages[agentIndex] = (newState, image )
         refresh()
 
+    def updateLog(self, logInfo):
+        self.statsPane.update(logInfo)
+
     def update(self, newState):
+
         agentIndex = newState._agentMoved
         agentState = newState.agentStates[agentIndex]
 
@@ -256,13 +392,13 @@ class PacmanGraphics:
     def make_window(self, width, height):
         grid_width = (width-1) * self.gridSize
         grid_height = (height-1) * self.gridSize
-        screen_width = 2*self.gridSize + grid_width
+        screen_width = 2*self.gridSize + grid_width + LEARNING_PANE_WIDTH
         screen_height = 2*self.gridSize + grid_height + INFO_PANE_HEIGHT
 
         begin_graphics(screen_width,
                        screen_height,
                        BACKGROUND_COLOR,
-                       "CS188 Pacman")
+                       "Pacman AI")
 
     def drawPacman(self, pacman, index):
         position = self.getPosition(pacman)
@@ -445,7 +581,8 @@ class PacmanGraphics:
         return agentState.configuration.getDirection()
 
     def finish(self):
-        end_graphics()
+        pass # -------------- ME
+        #end_graphics() ----------- ME
 
     def to_screen(self, point):
         ( x, y ) = point

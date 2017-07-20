@@ -159,7 +159,9 @@ class SimpleExtractor(FeatureExtractor):
         next_x, next_y = int(x + dx), int(y + dy)
 
         # count the number of ghosts 1-step away
-        features["#-of-ghosts-1-step-away"] = sum(g.getPosition() in Actions.getLegalNeighbors((next_x, next_y), walls) for g in notScaredGhosts)
+        features["#-of-ghosts-1-step-away"] = 0.0
+        if notScaredGhosts and closestGhost((next_x, next_y), notScaredGhosts, walls)[1] <= 2:
+            features["#-of-ghosts-1-step-away"] = 1.0
 
         # eat scared ghost ( continue in "closest scared ghost" )
         features["eats-scared-ghost"] = 0.0
@@ -172,7 +174,7 @@ class SimpleExtractor(FeatureExtractor):
         features["closest-scared-ghost"] = 0.0
         if scaredGhosts and not features["#-of-ghosts-1-step-away"]:
             closest, dist = closestGhost((next_x, next_y), scaredGhosts, walls)
-            if not features["#-of-ghosts-1-step-away"] and dist < 1.0:
+            if not features["#-of-ghosts-1-step-away"] and dist <= 1.0:
                 features["eats-scared-ghost"] = 0.5
             if (closest.scaredTimer / 2.0 > dist) and closest.scaredTimer >= 2:
                 features["closest-scared-ghost"] = (closest.scaredTimer / 2.0 - dist) / 50.0

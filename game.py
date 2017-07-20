@@ -24,6 +24,7 @@ from util import *
 import time, os
 import traceback
 import sys
+from graphicsUtils import wait_for_click
 
 #######################
 # Parts worth reading #
@@ -685,6 +686,12 @@ class Game:
             else:
                 action = agent.getAction(observation)
             self.unmute()
+
+            if agentIndex == 0 and 'log' in dir(agent):
+                logInfo = agent.log(self.state, action, self.display.layout, self.display.gridSize)
+                self.display.updateLog(logInfo)
+                # if display is on
+                # wait_for_click()
 
             # Execute the action
             self.moveHistory.append( (agentIndex, action) )
